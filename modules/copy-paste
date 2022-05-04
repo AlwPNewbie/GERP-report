@@ -1,0 +1,80 @@
+Public Sub Step2()
+
+'Step 1: Finding workbook and labelling them
+    Dim BookNames()
+
+    ReDim BookNames(Windows.Count)
+    i = 1
+    For i = 1 To Windows.Count
+    BookNames(i) = Workbooks(i).Name
+    Next i
+    
+    
+'Step 2: Copy data in tab CF9, from "GL ytd" to "Revenue by Custer"
+'Copy from "GL ytd" excel
+    Windows(BookNames(2)).Activate
+    Sheets("cf9").Select
+    Range("A3:F3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    
+'Paste in "Revenue by customer" excel
+    Windows(BookNames(3)).Activate
+    Sheets("CF9").Select
+    Range("J2").Select
+    ActiveSheet.Paste
+    
+    
+'Step 3: Update column I (vlookup Cfld 9)
+    Range("I3").Select
+    Range("I3").Value = "=VLOOKUP(K3,B:B,1,FALSE)"
+    Selection.AutoFill Destination:=Range("I3:I" & Range("J" & Rows.Count).End(xlUp).Row)
+    Range("I4", Selection.End(xlDown)).Select
+    Selection.ClearContents
+
+
+'Step 4: Filter to check for #N/A in CF9 tab
+    Dim wrows As Integer
+    Dim wrows2 As Integer
+    
+    Range("I2").Select
+    wrows = Range("A3").End(xlDown).Row
+    
+    ActiveSheet.Range("$I$2").AutoFilter Field:=1, Criteria1:="#N/A"
+    wrows2 = WorksheetFunction.Count(Range("J3").Cells.SpecialCells(xlCellTypeVisible))
+
+
+        If wrows2 > 0 Then
+           Range("J3:J" & wrows).SpecialCells(xlCellTypeVisible).Select
+           Range(Selection, Selection.End(xlToRight).End(xlDown)).Select
+           Application.CutCopyMode = False
+           Selection.Copy
+           Range("A" & wrows + 1).Select
+           ActiveSheet.Paste
+       End If
+    Selection.AutoFilter
+    
+    
+'Step 5: Update column G (if G = GMNC, if J = JMNC, otherwise NTT)
+    Range("G3").Select
+    ActiveCell.FormulaR1C1 = _
+        "=IF(LEFT(RC[2],1)=""G"",""GMNC"",IF(LEFT(RC[2],1)=""J"",""JMNC"",""NTT""))"
+    Range("G4", Selection.End(xlDown)).Select
+    Selection.ClearContents
+    Range("G3").Select
+    Selection.AutoFill Destination:=Range("G3:G" & Range("J" & Rows.Count).End(xlUp).Row)
+    
+    
+ 'Step 6: (Skipping CF9 tab), paste the formula in column AS
+    'Windows(BookNames(3)).Activate
+    'Sheets("Rawdata Rev by Cust").Select
+    
+    'Dim endRow1 As Long
+    'endRow1 = Cells(Rows.Count, "A").End(xlUp).Row
+
+    'Range("AS2").Select
+    'ActiveCell.FormulaR1C1 = _
+        "=IF(LEFT(RC[-22],1)=""G"",""GMNC"",IF(LEFT(RC[-22],1)=""J"",""JMNC"",IF(RC[-22]=""BPC"",""BPC"",""NTT"")))"
+    'Range("AS2").AutoFill Destination:=Range("AS2:AS" & endRow1)
+    
+End Sub

@@ -1,0 +1,86 @@
+Public Sub Step1()
+
+    With Application
+        .ScreenUpdating = False
+        .DisplayAlerts = False
+    End With
+        
+        
+'Step 1: To include new sheet (Configuration sheet)
+    Dim ws As Worksheet
+    Dim SheetName As String
+    Dim SheetExists As Boolean
+    
+    SheetName = "Config"
+    SheetExists = False
+    
+    With ThisWorkbook
+        'Check if the Sheet exists
+        For Each ws In .Worksheets
+            If ws.Name = SheetName Then
+                SheetExists = True
+                Exit For
+            End If
+        Next
+        
+        If SheetExists = False Then
+        'If the sheet dont exists, create
+            .Sheets.Add(After:=.Sheets(.Sheets.Count)).Name = SheetName
+        End If
+    End With
+
+
+'Step 2: Creating a reference
+    Sheets("Config").Select
+    Range("A2").Select
+    Range("A2") = "Month"
+    Range("A3").Select
+    Range("A3") = "Year"
+    Range("B1").Select
+    Range("B1") = "Previous"
+    Range("C1").Select
+    Range("C1") = "Current"
+    Range("B2").Select
+    Range("B2").Value = "=IF(D2=0,12,D2)"
+    Range("B3").Select
+    Range("B3").Value = "=C3-1"
+    Range("C2").Select
+    Range("C2").Value = "=MONTH(TODAY())"
+    Range("C3").Select
+    Range("C3").Value = "=YEAR(TODAY())"
+    
+    Range("D2").Select
+    Range("D2").FormulaR1C1 = "=MOD(RC[-1]-1,12)"
+    
+    Range("E1").Select
+    Range("E1") = "Path 1 - GL ytd"
+    Range("E2").Select
+    Range("E2") = "Path 2 - Revenue by customer"
+    
+    Range("B5").Select
+    ActiveCell.FormulaR1C1 = _
+        "=CONCATENATE(TEXT(Config!R[-3]C*29,""mmm""),"" "",Config!R[-2]C)"
+    Range("C5").Select
+    ActiveCell.FormulaR1C1 = _
+        "=CONCATENATE(TEXT(Config!R[-3]C*29,""mmm""),"" "",Config!R[-2]C)"
+    Range("C6").Select
+    
+    
+'Step 3: Calling out workbooks
+    Dim Path1 As String
+    Dim Path2 As String
+    Dim WFolder As String
+    
+    Sheets("Config").Select
+    'GL ytd excel
+    Path1 = Range("F1")
+    Debug.Print Path1
+    'Revenue by customer, GMNC JMNC Non-sales excel
+    Path2 = Range("f2")
+    WFolder = Range("F4")
+    Workbooks.Open (WFolder + Path1 + ".xlsb")
+    Workbooks.Open (WFolder + Path2 + ".xlsx")
+    
+    
+    
+End Sub

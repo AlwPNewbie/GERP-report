@@ -1,0 +1,119 @@
+Public Sub Step3()
+
+'Step 1: Finding workbook and labelling them
+    Dim BookNames()
+
+    ReDim BookNames(Windows.Count)
+    i = 1
+    For i = 1 To Windows.Count
+    BookNames(i) = Workbooks(i).Name
+    Next i
+      
+    
+'Step 2: To include new sheet (Configuration sheet)
+    Windows(BookNames(3)).Activate
+    Dim exists As Boolean
+
+    For i = 1 To Worksheets.Count
+        If Worksheets(i).Name = "Config" Then
+            exists = True
+        End If
+    Next i
+
+    If Not exists Then
+        Worksheets.Add.Name = "Config"
+    End If
+
+
+'Step 3: Creating a reference
+    Windows(BookNames(1)).Activate
+    Sheets("Config").Select
+    Range("A1:D5").Select
+    Selection.Copy
+    Range("A1").Select
+    Windows(BookNames(3)).Activate
+    Sheets("Config").Select
+    Range("A1").Select
+    ActiveSheet.Paste
+    
+    
+'Step 4: Insert 2 empty columns beside Fiscal Year and Accounting Period
+    Windows(BookNames(3)).Activate
+    Sheets("Rawdata Rev by Cust").Select
+    Columns("M:N").Select
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    Range("M2").Select
+    Range("M2").Value = "=K3=Config!$B$3"
+    Range("N2").Select
+    Range("N2").Value = "=L2=Config!$B$2"
+    Range("M2:N2").Select
+    Selection.AutoFill Destination:=Range("M2:N" & Range("AM" & Rows.Count).End(xlUp).Row)
+
+    
+'Step 5: Do a filter (this file is for rolling 12 months data,
+'   hence remove earliest month of last FY and add current month data.
+'   (Filter for Fiscal Year and Accounting Period to delete the oldest month))
+    Range("M1").Select
+    Selection.AutoFilter
+    
+    Dim xrows As Integer
+    
+    xrows = Range("A1").Rows.Count
+    ActiveSheet.Range("$A$1:$AW" & xrows).AutoFilter Field:=13, Criteria1:="TRUE"
+    ActiveSheet.Range("$A$1:$AW" & xrows).AutoFilter Field:=14, Criteria1:="TRUE"
+
+    Rows("2:2" & xrow).Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Delete Shift:=xlUp
+    Columns("M:N").Select
+    Selection.Delete Shift:=xlToLeft
+    Range("K3").Select
+    Selection.AutoFilter
+    
+
+'Step 6: To copy data
+    Windows(BookNames(1)).Activate
+    Dim yrows As Integer
+    Dim mth As Integer
+    Dim yr As Integer
+    
+    Sheets("Config").Select
+    mth = Range("C2").Value
+    yr = Range("C3").Value
+    
+    Windows(BookNames(2)).Activate
+    Sheets("Raw Data").Select
+    Selection.AutoFilter
+    yrows = Range("AM1").Rows.Count
+    ActiveSheet.Range("$A$1:$BV" & yrows).AutoFilter Field:=39, Criteria1:= _
+    "Revenue"
+    ActiveSheet.Range("$A$1:$BV" & yrows).AutoFilter Field:=11, Criteria1:=yr
+    ActiveSheet.Range("$A$1:$BV" & yrows).AutoFilter Field:=12, Criteria1:=mth
+    Range("A2:AR3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Copy
+    
+    
+'Step 7: To paste data and update formula in column AS
+    Windows(BookNames(3)).Activate
+    Sheets("Rawdata Rev by Cust").Select
+    
+    xrows2 = Range("AM1").End(xlDown).Row
+    Cells(xrows2 + 1, "A").Select
+    ActiveSheet.Paste
+    
+    Range("AS3").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.ClearContents
+    xrows2 = Range("AM1").End(xlDown).Row
+    Range("AS2").Select
+    ActiveCell.FormulaR1C1 = _
+        "=IF(LEFT(RC[-22],1)=""G"",""GMNC"",IF(LEFT(RC[-22],1)=""J"",""JMNC"",IF(RC[-22]=""BPC"",""BPC"",""NTT"")))"
+    Range("AS2").AutoFill Destination:=Range("AS2:AS" & xrows2)
+    Range("AS2").Select
+    
+
+End Sub
+
+
+

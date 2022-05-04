@@ -1,0 +1,36 @@
+Public Sub Step1Offline()
+'
+'Choose Revenue by customer file
+    Application.ScreenUpdating = False
+
+    With Application.FileDialog(msoFileDialogFilePicker)
+    .AllowMultiSelect = False
+    .Title = "Select Revenue by customer file"
+    .ButtonName = "Confirm"
+    If .Show = -1 Then
+    revenuefile = .SelectedItems(1)
+    End If
+    End With
+    
+    'Choose GL file
+    With Application.FileDialog(msoFileDialogFilePicker)
+    .AllowMultiSelect = FalFileDialogse
+    .Title = "Select GL file"
+    .ButtonName = "Confirm"
+    If .Show = -1 Then
+    glfile = .SelectedItems(1)
+    End If
+    End With
+    
+    glfile1 = Split(glfile, "\")(UBound(Split(glfile, "\")))
+    revenuefile1 = Split(revenuefile, "\")(UBound(Split(revenuefile, "\")))
+
+    glfile2 = Split(glfile1, ".")(LBound(Split(glfile1, ".")))
+    revenuefile2 = Split(revenuefile1, ".")(LBound(Split(revenuefile1, ".")))
+
+
+    Workbooks.Open glfile, UpdateLinks:=False
+    Workbooks.Open revenuefile, UpdateLinks:=False
+    
+    
+End Sub

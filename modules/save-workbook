@@ -1,0 +1,69 @@
+Public Sub Step4()
+
+'Step 1: Finding workbook and labelling them
+    Dim BookNames()
+
+    ReDim BookNames(Windows.Count)
+    i = 1
+    For i = 1 To Windows.Count
+    BookNames(i) = Workbooks(i).Name
+    Next i
+    
+    
+'Step 2: Refreshing pivot tables
+    ActiveWorkbook.RefreshAll
+
+
+'Step 3: Mapping data from pivot into a presentable table
+    Sheets("Revenue by Customer").Select
+    
+    zrows = Range("A5").End(xlDown).Row
+    
+    Range("W5:AQ5").Select
+    Selection.Copy
+    
+    Range("W5:W" & zrows).Select
+    ActiveSheet.Paste
+    
+    Cells(zrows, "W").Select
+    Selection = "Grand Total"
+
+
+'Step 4: Naming the header
+    Windows(BookNames(3)).Activate
+    
+    Range("W1").Select
+    ActiveCell.FormulaR1C1 = _
+        "=CONCATENATE(""Revenue from "", '[Revenue by customer - Draft version.xlsm]Config'!R5C2,"" to "", '[Revenue by customer - Draft version.xlsm]Config'!R5C3,"" (12 months) by customer"")"
+    Range("W1").Select
+    Selection.Copy
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    
+    
+'Step 5: Saving and renaming excel
+    Dim WFolder As String
+    Dim Filename As String
+    
+    Windows(BookNames(1)).Activate
+    WFolder = Range("F5")
+    
+    Windows(BookNames(3)).Activate
+    'Sharepoint working folder
+    'https://nttlimited.sharepoint.com/teams/NTTSGFinance/Shared%20Documents/Forms/AllItems.aspx?id=%2Fteams%2FNTTSGFinance%2FShared%20Documents%2FFY%2021%2FNTTS%2FMonth%20End%20Closing%2F12%2E%20Mar%2022%2FManagement%20Report%2FWorking%20Folder&viewid=60088401%2Dad25%2D4e25%2Dbf5f%2D804056f50313&OR=Teams%2DHL&CT=1651030263435&params=eyJBcHBOYW1lIjoiVGVhbXMtRGVza3RvcCIsIkFwcFZlcnNpb24iOiIyNy8yMjAzMDcwMTYxMCJ9
+    Filename = "Revenue by customer, GMNC JMNC Non-sales " & Format(DateSerial(Year(Now) - 1, Month(Now), 0), "mmm yy") & "-" & Format(Now, "mmm yy")
+    ActiveWorkbook.SaveAs Filename:=WFolder & "\" & Filename & ".xlsx", FileFormat:=51
+    
+    
+    'To delete the config sheet
+    Application.DisplayAlerts = False
+    Sheets("Config").Delete
+    Application.DisplayAlerts = True
+
+
+    'Close workbooks
+    ActiveWorkbook.Close SaveChanges:=False
+    Windows(BookNames(2)).Close SaveChanges:=False
+
+
+End Sub
